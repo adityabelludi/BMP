@@ -1,0 +1,46 @@
+# ==================================================================
+# BMP — Belludi Masala Products :: Local Docker setup
+# ------------------------------------------------------------------
+# This compose file runs the Next.js storefront in a container.
+#
+# For the local SUPABASE stack (Postgres, Auth, Studio, etc.) we
+# recommend the official Supabase CLI, which orchestrates its own
+# docker containers reliably:
+#
+#     npm i -g supabase        # or: npx supabase ...
+#     supabase start           # boots Postgres + Auth + Studio
+#     supabase db reset        # applies ./supabase/migrations
+#     npm run seed             # seeds products
+#
+# `supabase start` prints your local API URL + anon/service keys —
+# copy them into `.env.local`. Then bring up the app:
+#
+#     docker compose up --build web
+#
+# On Linux, the app container reaches the host's Supabase via
+# `host.docker.internal` (already mapped below).
+# ==================================================================
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL}
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+        NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-http://localhost:3000}
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+      SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY}
+      ADMIN_EMAILS: ${ADMIN_EMAILS}
+      NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-http://localhost:3000}
+    env_file:
+      - .env.local
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
