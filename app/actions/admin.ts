@@ -20,12 +20,19 @@ export async function updateOrderStatus(
   } = await supabase.auth.getUser();
   if (!user) return { ok: false, error: "Not authenticated" };
 
-  const { error } = await supabase
+  const { data: isAdmin } = await supabase.rpc("is_admin");
+  if (!isAdmin) return { ok: false, error: "Not authorized" };
+
+  const { data: updated, error } = await supabase
     .from("orders")
     .update({ status })
-    .eq("id", orderId);
+    .eq("id", orderId)
+    .select("id");
 
   if (error) return { ok: false, error: error.message };
+  if (!updated || updated.length === 0) {
+    return { ok: false, error: "Order not found or not permitted" };
+  }
 
   revalidatePath("/admin");
   return { ok: true };

@@ -251,6 +251,38 @@ create policy "order_items_admin_read"
   using (public.is_admin());
 
 
+-- ===================== 20260104000000_security_hardening.sql =====================
+-- ============================================================
+-- BMP :: Security hardening
+--   * Restrict product writes to admins only (was: any authenticated)
+--   * Restrict product-image uploads to admins only
+-- ============================================================
+
+-- ---------- PRODUCTS: writes admin-only ----------
+drop policy if exists "products_admin_write" on public.products;
+create policy "products_admin_write"
+  on public.products for all
+  to authenticated
+  using (public.is_admin())
+  with check (public.is_admin());
+
+-- ---------- STORAGE: product images uploaded by admins only ----------
+drop policy if exists "product_images_auth_insert" on storage.objects;
+create policy "product_images_auth_insert"
+  on storage.objects for insert to authenticated
+  with check (bucket_id = 'product-images' and public.is_admin());
+
+drop policy if exists "product_images_auth_update" on storage.objects;
+create policy "product_images_auth_update"
+  on storage.objects for update to authenticated
+  using (bucket_id = 'product-images' and public.is_admin());
+
+drop policy if exists "product_images_auth_delete" on storage.objects;
+create policy "product_images_auth_delete"
+  on storage.objects for delete to authenticated
+  using (bucket_id = 'product-images' and public.is_admin());
+
+
 -- ===================== seed: products =====================
 insert into public.products (slug,name,short_description,description,image_url,category,spice_default,is_bestseller,in_stock,variants) values
 ('pulihora-powder','Pulihora Powder','Tangy tamarind rice mix, temple-style.','Our Pulihora (tamarind rice) powder is a fragrant blend of roasted lentils, sesame, curry leaves and tangy tamarind — the same recipe served as prasadam in Karnataka temples. Just mix with hot rice and a spoon of ghee for an instant, soul-warming meal.','/products/pulihora_powder.png','Rice Mixes','Medium',true,true,'[{"size":"100g","price":40,"weight_grams":100},{"size":"500g","price":200,"weight_grams":500},{"size":"1kg","price":400,"weight_grams":1000}]'::jsonb),

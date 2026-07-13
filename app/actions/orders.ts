@@ -6,6 +6,8 @@ import { createClient, isSupabaseConfigured } from "@/lib/supabase/server";
 import { DELIVERY_CHARGE } from "@/lib/constants";
 import type { OrderItem } from "@/types";
 
+const MAX_QTY_PER_LINE = 99;
+
 export type CreateOrderResult =
   | { ok: true; orderId: string }
   | { ok: false; error: string };
@@ -27,39 +29,73 @@ export async function createOrder(
 
   const data = parsed.data;
 
+  // Guard against absurd quantities.
+  if (data.items.some((i) => i.quantity > MAX_QTY_PER_LINE)) {
+    return { ok: false, error: `Quantity per item is limited to ${MAX_QTY_PER_LINE}` };
+  }
+
+  // Demo/offline fallback so the flow is testable without a DB.
+  if (!isSupabaseConfigured() || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    console.warn("[createOrder] Supabase not configured — returning demo id.");
+    return { ok: true, orderId: "demo-0000-0000-0000-000000000000" };
+  }
+
   // Checkout requires a logged-in customer so they can track the order.
   const authClient = await createClient();
   const {
     data: { user },
   } = await authClient.auth.getUser();
 
-  if (isSupabaseConfigured() && !user) {
+  if (!user) {
     return { ok: false, error: "Please log in to place your order" };
-  }
-
-  // Recompute money server-side from item price * quantity.
-  const items: OrderItem[] = data.items.map((i) => ({
-    product_id: i.product_id,
-    name: i.name,
-    size: i.size as OrderItem["size"],
-    spice_level: i.spice_level as OrderItem["spice_level"],
-    price: i.price,
-    quantity: i.quantity,
-    line_total: i.price * i.quantity,
-  }));
-
-  const subtotal = items.reduce((s, i) => s + i.line_total, 0);
-  const delivery_charge = DELIVERY_CHARGE;
-  const total_amount = subtotal + delivery_charge;
-
-  if (!isSupabaseConfigured() || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
-    // Demo/offline fallback so the flow is testable without a DB.
-    console.warn("[createOrder] Supabase not configured — returning demo id.");
-    return { ok: true, orderId: "demo-0000-0000-0000-000000000000" };
   }
 
   try {
     const supabase = createAdminClient();
+
+    // ---- Authoritative pricing: never trust client prices ----
+    const productIds = [...new Set(data.items.map((i) => i.product_id))];
+    const { data: dbProducts, error: prodErr } = await supabase
+      .from("products")
+      .select("id, name, in_stock, variants")
+      .in("id", productIds);
+
+    if (prodErr) {
+      return { ok: false, error: "Could not verify your cart. Please retry." };
+    }
+
+    const byId = new Map((dbProducts ?? []).map((p) => [p.id, p]));
+    const items: OrderItem[] = [];
+
+    for (const i of data.items) {
+      const p = byId.get(i.product_id);
+      if (!p) {
+        return { ok: false, error: "A product in your cart is no longer available." };
+      }
+      if (!p.in_stock) {
+        return { ok: false, error: `${p.name} is out of stock.` };
+      }
+      const variant = (p.variants as { size: string; price: number }[]).find(
+        (v) => v.size === i.size
+      );
+      if (!variant) {
+        return { ok: false, error: `Selected size is unavailable for ${p.name}.` };
+      }
+      const price = variant.price; // authoritative, from DB
+      items.push({
+        product_id: p.id,
+        name: p.name, // authoritative name too
+        size: i.size as OrderItem["size"],
+        spice_level: i.spice_level as OrderItem["spice_level"],
+        price,
+        quantity: i.quantity,
+        line_total: price * i.quantity,
+      });
+    }
+
+    const subtotal = items.reduce((s, i) => s + i.line_total, 0);
+    const delivery_charge = DELIVERY_CHARGE;
+    const total_amount = subtotal + delivery_charge;
 
     const { data: order, error } = await supabase
       .from("orders")

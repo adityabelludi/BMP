@@ -8,12 +8,15 @@ export type ProductActionResult =
   | { ok: true; id?: string }
   | { ok: false; error: string };
 
+/** Returns an authenticated client only if the caller is a verified admin. */
 async function getAdminClient() {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return null;
+  const { data: isAdmin } = await supabase.rpc("is_admin");
+  if (!isAdmin) return null;
   return supabase;
 }
 
@@ -32,7 +35,7 @@ export async function createProduct(
   }
 
   const supabase = await getAdminClient();
-  if (!supabase) return { ok: false, error: "Not authenticated" };
+  if (!supabase) return { ok: false, error: "Not authorized" };
 
   const { data, error } = await supabase
     .from("products")
@@ -61,7 +64,7 @@ export async function updateProduct(
   }
 
   const supabase = await getAdminClient();
-  if (!supabase) return { ok: false, error: "Not authenticated" };
+  if (!supabase) return { ok: false, error: "Not authorized" };
 
   const { error } = await supabase
     .from("products")
@@ -83,7 +86,7 @@ export async function deleteProduct(
   id: string
 ): Promise<ProductActionResult> {
   const supabase = await getAdminClient();
-  if (!supabase) return { ok: false, error: "Not authenticated" };
+  if (!supabase) return { ok: false, error: "Not authorized" };
 
   const { error } = await supabase.from("products").delete().eq("id", id);
   if (error) return { ok: false, error: error.message };
@@ -97,7 +100,7 @@ export async function toggleStock(
   in_stock: boolean
 ): Promise<ProductActionResult> {
   const supabase = await getAdminClient();
-  if (!supabase) return { ok: false, error: "Not authenticated" };
+  if (!supabase) return { ok: false, error: "Not authorized" };
 
   const { error } = await supabase
     .from("products")
