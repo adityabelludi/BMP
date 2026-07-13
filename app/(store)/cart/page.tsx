@@ -16,7 +16,7 @@ import { QuantityStepper } from "@/components/quantity-stepper";
 import { SmartImage } from "@/components/smart-image";
 import { useCart } from "@/store/cart";
 import { formatINR } from "@/lib/utils";
-import { DELIVERY_CHARGE, SPICE_LEVELS } from "@/lib/constants";
+import { SPICE_LEVELS } from "@/lib/constants";
 import type { SpiceLevel } from "@/types";
 
 export default function CartPage() {
@@ -30,7 +30,6 @@ export default function CartPage() {
   useEffect(() => setMounted(true), []);
 
   const subtotal = items.reduce((s, i) => s + i.price * i.quantity, 0);
-  const delivery = items.length ? DELIVERY_CHARGE : 0;
 
   if (!mounted) {
     return <div className="container py-24" aria-hidden />;
@@ -151,24 +150,13 @@ export default function CartPage() {
             Order Summary
           </h2>
           <div className="mt-5 space-y-3 text-sm">
-            <div className="flex justify-between text-maroon-600">
+            <div className="flex justify-between border-b border-cream-200 pb-3 text-lg font-bold text-maroon-900">
               <span>Subtotal</span>
-              <span className="font-medium text-maroon-800">
-                {formatINR(subtotal)}
-              </span>
+              <span>{formatINR(subtotal)}</span>
             </div>
-            <div className="flex justify-between text-maroon-600">
-              <span>Delivery (flat)</span>
-              <span className="font-medium text-maroon-800">
-                {formatINR(delivery)}
-              </span>
-            </div>
-            <div className="border-t border-cream-200 pt-3">
-              <div className="flex justify-between text-lg font-bold text-maroon-900">
-                <span>Total</span>
-                <span>{formatINR(subtotal + delivery)}</span>
-              </div>
-            </div>
+            <p className="text-xs text-maroon-400">
+              Delivery is calculated at checkout based on your delivery country.
+            </p>
           </div>
 
           <Button asChild size="lg" className="mt-6 w-full">

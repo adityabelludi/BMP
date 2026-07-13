@@ -6,7 +6,10 @@ import { Badge } from "@/components/ui/badge";
 import { formatINR } from "@/lib/utils";
 
 export function ProductCard({ product }: { product: Product }) {
-  const from = Math.min(...product.variants.map((v) => v.price));
+  const cheapest = product.variants.reduce(
+    (a, b) => (b.price < a.price ? b : a),
+    product.variants[0]
+  );
 
   return (
     <Link
@@ -49,9 +52,9 @@ export function ProductCard({ product }: { product: Product }) {
 
         <div className="mt-4 flex items-center justify-between">
           <div>
-            <span className="text-xs text-maroon-500">From</span>
+            <span className="text-xs text-maroon-500">{cheapest?.size}</span>
             <p className="font-heading text-lg font-bold text-maroon-900">
-              {formatINR(from)}
+              {formatINR(cheapest?.price ?? 0)}
             </p>
           </div>
           <span className="inline-flex items-center gap-1 rounded-full bg-saffron-50 px-3 py-1.5 text-sm font-medium text-saffron-700 transition-colors group-hover:bg-saffron-500 group-hover:text-white">

@@ -13,6 +13,11 @@ export interface Category {
   created_at?: string;
 }
 
+export interface DeliverySettings {
+  delivery_within_india: number;
+  delivery_outside_india: number;
+}
+
 export type OrderStatus =
   | "Pending"
   | "Processing"
@@ -75,6 +80,7 @@ export interface Order {
   city: string;
   state: string;
   pincode: string;
+  country: string;
   notes: string | null;
   items: OrderItem[];
   subtotal: number;

@@ -3,7 +3,7 @@
 import { createOrderSchema, type CreateOrderInput } from "@/lib/validators";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/server";
-import { DELIVERY_CHARGE } from "@/lib/constants";
+import { DELIVERY_CHARGE, DELIVERY_CHARGE_OUTSIDE } from "@/lib/constants";
 import { sendEmail } from "@/lib/email";
 import { orderConfirmationEmail } from "@/lib/email-templates";
 import type { Order, OrderItem } from "@/types";
@@ -95,8 +95,18 @@ export async function createOrder(
       });
     }
 
+    // Delivery charge from admin-configured settings, by country.
+    const { data: settingsRow } = await supabase
+      .from("store_settings")
+      .select("delivery_within_india, delivery_outside_india")
+      .maybeSingle();
+    const within = settingsRow?.delivery_within_india ?? DELIVERY_CHARGE;
+    const outside = settingsRow?.delivery_outside_india ?? DELIVERY_CHARGE_OUTSIDE;
+    const country = (data.country ?? "India").trim();
+
     const subtotal = items.reduce((s, i) => s + i.line_total, 0);
-    const delivery_charge = DELIVERY_CHARGE;
+    const delivery_charge =
+      country.toLowerCase() === "india" ? within : outside;
     const total_amount = subtotal + delivery_charge;
 
     const { data: order, error } = await supabase
@@ -110,6 +120,7 @@ export async function createOrder(
         city: data.city,
         state: data.state,
         pincode: data.pincode,
+        country,
         notes: data.notes || null,
         items,
         subtotal,
@@ -150,6 +161,7 @@ export async function createOrder(
         city: data.city,
         state: data.state,
         pincode: data.pincode,
+        country,
         notes: data.notes || null,
         items,
         subtotal,

@@ -1,7 +1,39 @@
 import "server-only";
-import type { Category, Product } from "@/types";
+import type { Category, DeliverySettings, Product } from "@/types";
 import { PRODUCTS, getProductBySlug as getSeedBySlug } from "@/lib/products";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/server";
+import { DELIVERY_CHARGE, DELIVERY_CHARGE_OUTSIDE } from "@/lib/constants";
+
+/** Delivery charges (admin-configurable). Falls back to constants. */
+export async function getDeliverySettings(): Promise<DeliverySettings> {
+  const fallback: DeliverySettings = {
+    delivery_within_india: DELIVERY_CHARGE,
+    delivery_outside_india: DELIVERY_CHARGE_OUTSIDE,
+  };
+  if (!isSupabaseConfigured()) return fallback;
+
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("store_settings")
+      .select("delivery_within_india, delivery_outside_india")
+      .maybeSingle();
+    if (error || !data) return fallback;
+    return data as DeliverySettings;
+  } catch {
+    return fallback;
+  }
+}
+
+/** Delivery charge for a given country. */
+export function deliveryForCountry(
+  settings: DeliverySettings,
+  country: string
+): number {
+  return country.trim().toLowerCase() === "india"
+    ? settings.delivery_within_india
+    : settings.delivery_outside_india;
+}
 
 /**
  * Managed category list for the admin dropdown + storefront filters.

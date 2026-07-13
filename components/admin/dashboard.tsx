@@ -33,12 +33,34 @@ import { ORDER_STATUSES, STATUS_STYLES } from "@/lib/constants";
 import { cn, formatINR, formatDate, shortId } from "@/lib/utils";
 import { ordersToCsv, downloadCsv } from "@/lib/csv";
 
+type DateRange = "all" | "today" | "month" | "6months";
+
+const DATE_RANGES: { value: DateRange; label: string }[] = [
+  { value: "all", label: "All time" },
+  { value: "today", label: "Today" },
+  { value: "month", label: "Last 30 days" },
+  { value: "6months", label: "Last 6 months" },
+];
+
+function rangeCutoff(range: DateRange): number {
+  const d = new Date();
+  if (range === "today") {
+    d.setHours(0, 0, 0, 0);
+    return d.getTime();
+  }
+  if (range === "month") return Date.now() - 30 * 86_400_000;
+  if (range === "6months") return Date.now() - 182 * 86_400_000;
+  return 0;
+}
+
 export function AdminDashboard({ orders }: { orders: Order[] }) {
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState<OrderStatus | "all">("all");
+  const [range, setRange] = useState<DateRange>("all");
   const [expanded, setExpanded] = useState<string | null>(null);
 
   const filtered = useMemo(() => {
+    const cutoff = rangeCutoff(range);
     return orders.filter((o) => {
       const q = query.toLowerCase();
       const matchesQuery =
@@ -49,9 +71,11 @@ export function AdminDashboard({ orders }: { orders: Order[] }) {
         o.pincode.includes(q) ||
         shortId(o.id).toLowerCase().includes(q);
       const matchesStatus = status === "all" || o.status === status;
-      return matchesQuery && matchesStatus;
+      const matchesDate =
+        cutoff === 0 || new Date(o.created_at).getTime() >= cutoff;
+      return matchesQuery && matchesStatus && matchesDate;
     });
-  }, [orders, query, status]);
+  }, [orders, query, status, range]);
 
   const stats = useMemo(() => {
     const revenue = orders
@@ -118,11 +142,23 @@ export function AdminDashboard({ orders }: { orders: Order[] }) {
             className="pl-10"
           />
         </div>
+        <Select value={range} onValueChange={(v) => setRange(v as DateRange)}>
+          <SelectTrigger className="sm:w-44">
+            <SelectValue placeholder="Date" />
+          </SelectTrigger>
+          <SelectContent>
+            {DATE_RANGES.map((r) => (
+              <SelectItem key={r.value} value={r.value}>
+                {r.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         <Select
           value={status}
           onValueChange={(v) => setStatus(v as OrderStatus | "all")}
         >
-          <SelectTrigger className="sm:w-48">
+          <SelectTrigger className="sm:w-40">
             <SelectValue placeholder="Status" />
           </SelectTrigger>
           <SelectContent>

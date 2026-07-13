@@ -1,23 +1,47 @@
 import { z } from "zod";
 import { SPICE_LEVELS } from "@/lib/constants";
 
-export const checkoutSchema = z.object({
+const checkoutBase = z.object({
   customer_name: z
     .string()
     .min(2, "Please enter your full name")
     .max(80, "Name is too long"),
-  phone: z
-    .string()
-    .regex(/^[6-9]\d{9}$/, "Enter a valid 10-digit Indian mobile number"),
+  phone: z.string().min(6, "Enter a valid phone number").max(20),
   address_line: z
     .string()
     .min(6, "Please enter your full address")
     .max(300, "Address is too long"),
   city: z.string().min(2, "Enter your city"),
-  state: z.string().min(2, "Enter your state"),
-  pincode: z.string().regex(/^\d{6}$/, "Enter a valid 6-digit pincode"),
+  state: z.string().min(2, "Enter your state / region"),
+  pincode: z.string().min(3, "Enter a valid postal / PIN code").max(12),
+  country: z.string().min(2, "Select a country").default("India"),
   notes: z.string().max(500, "Notes are too long").optional().or(z.literal("")),
 });
+
+// India-specific format checks (only when country is India).
+function refineAddress(
+  data: { country?: string; phone: string; pincode: string },
+  ctx: z.RefinementCtx
+) {
+  if ((data.country ?? "India").trim().toLowerCase() === "india") {
+    if (!/^[6-9]\d{9}$/.test(data.phone)) {
+      ctx.addIssue({
+        path: ["phone"],
+        code: z.ZodIssueCode.custom,
+        message: "Enter a valid 10-digit Indian mobile number",
+      });
+    }
+    if (!/^\d{6}$/.test(data.pincode)) {
+      ctx.addIssue({
+        path: ["pincode"],
+        code: z.ZodIssueCode.custom,
+        message: "Enter a valid 6-digit pincode",
+      });
+    }
+  }
+}
+
+export const checkoutSchema = checkoutBase.superRefine(refineAddress);
 
 export type CheckoutInput = z.infer<typeof checkoutSchema>;
 
@@ -31,9 +55,11 @@ export const orderItemSchema = z.object({
   line_total: z.number().nonnegative(),
 });
 
-export const createOrderSchema = checkoutSchema.extend({
-  items: z.array(orderItemSchema).min(1, "Your cart is empty"),
-});
+export const createOrderSchema = checkoutBase
+  .extend({
+    items: z.array(orderItemSchema).min(1, "Your cart is empty"),
+  })
+  .superRefine(refineAddress);
 
 export type CreateOrderInput = z.infer<typeof createOrderSchema>;
 

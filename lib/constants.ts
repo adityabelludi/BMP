@@ -4,13 +4,16 @@ export const BRAND = {
   name: "BMP",
   fullName: "Belludi Masala Products",
   tagline: "Pure. Traditional. Karnataka's Finest Masalas",
-  email: "hello@belludimasala.com",
+  email: "adityabelludi@gmail.com",
   phone: "+91 78991 15841",
   phoneAlt: "+91 76763 23132",
-  location: "Karnataka, India",
+  location: "Davangere, Karnataka, India",
 } as const;
 
-export const DELIVERY_CHARGE = 200; // flat, applied once per order
+// Fallback delivery charges (used if store settings can't be read).
+// Admins can customise these in Admin → Settings.
+export const DELIVERY_CHARGE = 200; // within India, flat
+export const DELIVERY_CHARGE_OUTSIDE = 1500; // outside India, flat
 
 export const SIZE_PRICING: Record<SizeCode, number> = {
   "100g": 40,

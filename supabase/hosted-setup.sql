@@ -329,6 +329,46 @@ where coalesce(category, '') <> ''
 on conflict (name) do nothing;
 
 
+-- ===================== 20260107000000_store_settings.sql =====================
+-- ============================================================
+-- BMP :: Store settings (customizable delivery charges) + order country
+-- ============================================================
+
+-- Singleton settings row (id is always true)
+create table if not exists public.store_settings (
+  id                     boolean primary key default true,
+  delivery_within_india  integer not null default 200,
+  delivery_outside_india integer not null default 1500,
+  updated_at             timestamptz not null default now(),
+  constraint store_settings_singleton check (id = true)
+);
+
+insert into public.store_settings (id) values (true)
+on conflict (id) do nothing;
+
+alter table public.store_settings enable row level security;
+
+grant select on public.store_settings to anon, authenticated;
+grant update on public.store_settings to authenticated;
+grant all on public.store_settings to service_role;
+
+drop policy if exists "store_settings_public_read" on public.store_settings;
+create policy "store_settings_public_read"
+  on public.store_settings for select
+  using (true);
+
+drop policy if exists "store_settings_admin_update" on public.store_settings;
+create policy "store_settings_admin_update"
+  on public.store_settings for update
+  to authenticated
+  using (public.is_admin())
+  with check (public.is_admin());
+
+-- Which country an order ships to (drives the delivery charge)
+alter table public.orders
+  add column if not exists country text not null default 'India';
+
+
 -- ===================== seed: products =====================
 insert into public.products (slug,name,short_description,description,image_url,category,spice_default,is_bestseller,in_stock,variants) values
 ('pulihora-powder','Pulihora Powder','Tangy tamarind rice mix, temple-style.','Our Pulihora (tamarind rice) powder is a fragrant blend of roasted lentils, sesame, curry leaves and tangy tamarind — the same recipe served as prasadam in Karnataka temples. Just mix with hot rice and a spoon of ghee for an instant, soul-warming meal.','/products/pulihora_powder.png','Rice Mixes','Medium',true,true,'[{"size":"100g","price":40,"weight_grams":100},{"size":"500g","price":200,"weight_grams":500},{"size":"1kg","price":400,"weight_grams":1000}]'::jsonb),

@@ -16,10 +16,15 @@ import { useCart } from "@/store/cart";
 import { checkoutSchema, type CheckoutInput } from "@/lib/validators";
 import { createOrder } from "@/app/actions/orders";
 import { formatINR } from "@/lib/utils";
-import { DELIVERY_CHARGE } from "@/lib/constants";
 import type { OrderItem } from "@/types";
 
-export function CheckoutForm() {
+export function CheckoutForm({
+  deliveryWithinIndia,
+  deliveryOutsideIndia,
+}: {
+  deliveryWithinIndia: number;
+  deliveryOutsideIndia: number;
+}) {
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -29,17 +34,24 @@ export function CheckoutForm() {
 
   useEffect(() => setMounted(true), []);
 
-  const subtotal = items.reduce((s, i) => s + i.price * i.quantity, 0);
-  const total = subtotal + (items.length ? DELIVERY_CHARGE : 0);
-
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors },
   } = useForm<CheckoutInput>({
     resolver: zodResolver(checkoutSchema),
-    defaultValues: { notes: "" },
+    defaultValues: { notes: "", country: "India" },
   });
+
+  const country = watch("country") ?? "India";
+  const deliveryCharge =
+    country.toLowerCase() === "india"
+      ? deliveryWithinIndia
+      : deliveryOutsideIndia;
+
+  const subtotal = items.reduce((s, i) => s + i.price * i.quantity, 0);
+  const total = subtotal + (items.length ? deliveryCharge : 0);
 
   async function onSubmit(values: CheckoutInput) {
     if (items.length === 0) {
@@ -116,6 +128,19 @@ export function CheckoutForm() {
                 {...register("customer_name")}
               />
               {fieldError("customer_name")}
+            </div>
+
+            <div className="sm:col-span-2">
+              <Label htmlFor="country">Country / Region *</Label>
+              <select
+                id="country"
+                className="mt-1.5 flex h-11 w-full rounded-xl border border-cream-300 bg-white px-4 text-sm text-maroon-900 shadow-sm focus-visible:border-saffron-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-saffron-200"
+                {...register("country")}
+              >
+                <option value="India">India</option>
+                <option value="Outside India">Outside India</option>
+              </select>
+              {fieldError("country")}
             </div>
 
             <div>
@@ -220,9 +245,14 @@ export function CheckoutForm() {
               </span>
             </div>
             <div className="flex justify-between text-maroon-600">
-              <span>Delivery (flat)</span>
+              <span>
+                Delivery{" "}
+                <span className="text-xs text-maroon-400">
+                  ({country.toLowerCase() === "india" ? "within India" : "international"})
+                </span>
+              </span>
               <span className="font-medium text-maroon-800">
-                {formatINR(DELIVERY_CHARGE)}
+                {formatINR(deliveryCharge)}
               </span>
             </div>
             <div className="flex justify-between border-t border-cream-200 pt-3 text-lg font-bold text-maroon-900">

@@ -6,6 +6,8 @@ import {
   ShieldCheck,
   Truck,
   Sparkles,
+  ChefHat,
+  Home,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -48,9 +50,17 @@ export default async function HomePage() {
         <div className="absolute inset-0 rangoli-bg opacity-70" aria-hidden />
         <div className="container relative grid gap-12 py-16 md:grid-cols-2 md:items-center md:py-24">
           <div className="animate-fade-up">
-            <Badge variant="gold" className="mb-5">
-              <Sparkles className="mr-1 h-3.5 w-3.5" /> Karnataka's Finest
-            </Badge>
+            <div className="mb-5 flex flex-wrap gap-2">
+              <Badge variant="gold">
+                <Sparkles className="mr-1 h-3.5 w-3.5" /> Karnataka's Finest
+              </Badge>
+              <Badge variant="maroon">
+                <ChefHat className="mr-1 h-3.5 w-3.5" /> Chef's Choice
+              </Badge>
+              <Badge variant="default">
+                <Home className="mr-1 h-3.5 w-3.5" /> Home-made
+              </Badge>
+            </div>
             <h1 className="heading-serif text-4xl font-bold leading-[1.1] sm:text-5xl lg:text-6xl">
               Pure. Traditional.
               <br />
@@ -112,8 +122,8 @@ export default async function HomePage() {
         <div className="container grid gap-12 md:grid-cols-2 md:items-center">
           <div className="relative order-2 aspect-square overflow-hidden rounded-3xl md:order-1">
             <SmartImage
-              src="https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=900&q=80"
-              alt="Traditional spice grinding"
+              src="https://images.unsplash.com/photo-1633383718081-22ac93e3db65?auto=format&fit=crop&w=900&q=80"
+              alt="Assorted Indian masalas and spices"
               fill
               sizes="(max-width: 768px) 100vw, 40vw"
               className="object-cover"
@@ -139,6 +149,9 @@ export default async function HomePage() {
                 honest, layered flavour that turns everyday meals into memories.
               </p>
             </div>
+            <blockquote className="mt-6 border-l-4 border-saffron-400 bg-cream-100 py-3 pl-5 pr-4 font-heading text-lg italic text-maroon-700">
+              &ldquo;One bite brings back memories of mom&rsquo;s cooking.&rdquo;
+            </blockquote>
             <Button asChild className="mt-7" variant="maroon">
               <Link href="/shop">
                 Explore the Range <ArrowRight className="h-4 w-4" />

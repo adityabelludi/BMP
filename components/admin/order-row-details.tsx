@@ -1,7 +1,7 @@
 import type { Order } from "@/types";
 import { Badge } from "@/components/ui/badge";
 import { formatINR } from "@/lib/utils";
-import { MapPin, Phone, StickyNote } from "lucide-react";
+import { MapPin, Phone, StickyNote, Mail } from "lucide-react";
 
 export function OrderRowDetails({ order }: { order: Order }) {
   return (
@@ -57,11 +57,18 @@ export function OrderRowDetails({ order }: { order: Order }) {
             <span>
               {order.address_line}, {order.city}, {order.state} —{" "}
               {order.pincode}
+              <br />
+              <span className="text-maroon-500">{order.country}</span>
             </span>
           </p>
           <p className="flex items-center gap-2 text-maroon-700">
             <Phone className="h-4 w-4 text-saffron-500" /> {order.phone}
           </p>
+          {order.email && (
+            <p className="flex items-center gap-2 text-maroon-700">
+              <Mail className="h-4 w-4 text-saffron-500" /> {order.email}
+            </p>
+          )}
           {order.notes && (
             <p className="flex items-start gap-2 text-maroon-600">
               <StickyNote className="mt-0.5 h-4 w-4 shrink-0 text-saffron-500" />

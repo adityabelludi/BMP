@@ -17,7 +17,6 @@ import { QuantityStepper } from "@/components/quantity-stepper";
 import { SmartImage } from "@/components/smart-image";
 import { useCart } from "@/store/cart";
 import { formatINR } from "@/lib/utils";
-import { DELIVERY_CHARGE } from "@/lib/constants";
 
 export function CartSheet() {
   const [open, setOpen] = useState(false);
@@ -116,22 +115,13 @@ export function CartSheet() {
 
             <div className="space-y-4 border-t border-cream-300 bg-white px-6 py-5">
               <div className="space-y-1.5 text-sm">
-                <div className="flex justify-between text-maroon-600">
+                <div className="flex justify-between text-base font-bold text-maroon-900">
                   <span>Subtotal</span>
-                  <span className="font-medium text-maroon-800">
-                    {formatINR(subtotal)}
-                  </span>
+                  <span>{formatINR(subtotal)}</span>
                 </div>
-                <div className="flex justify-between text-maroon-600">
-                  <span>Delivery</span>
-                  <span className="font-medium text-maroon-800">
-                    {formatINR(DELIVERY_CHARGE)}
-                  </span>
-                </div>
-                <div className="flex justify-between pt-1.5 text-base font-bold text-maroon-900">
-                  <span>Total</span>
-                  <span>{formatINR(subtotal + DELIVERY_CHARGE)}</span>
-                </div>
+                <p className="text-xs text-maroon-400">
+                  Delivery calculated at checkout.
+                </p>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <SheetClose asChild>

@@ -16,11 +16,54 @@ const testimonials = [
     city: "Mangaluru",
     text: "Finally a Sambar powder that isn't bitter. Balanced, rich and authentic. BMP has become a permanent part of my kitchen.",
   },
+  {
+    name: "Rohan Deshpande",
+    city: "Davangere",
+    text: "One bite of the Vangi Bath and I was back at my mother's dining table. Truly home-made taste — you can tell it's made with love.",
+  },
+  {
+    name: "Meera Shetty",
+    city: "Udupi",
+    text: "Chef's-choice quality at home. The Pulihora powder is temple-perfect. My guests always ask where I bought it!",
+  },
+  {
+    name: "Vikram Rao",
+    city: "Mysuru",
+    text: "Kadle chutney powder is nutty, fresh and moreish. You can taste that it's small-batch and stone-ground. Absolutely brilliant.",
+  },
+  {
+    name: "Sunitha G.",
+    city: "Belagavi",
+    text: "I've tried every brand out there — nothing comes close to this authenticity. Fast delivery and beautifully packed too.",
+  },
 ];
 
-export function Testimonials() {
+function Card({ t }: { t: (typeof testimonials)[number] }) {
   return (
-    <section className="section bg-cream-100 rangoli-bg">
+    <figure className="flex w-[300px] shrink-0 flex-col rounded-2xl border border-cream-300 bg-white p-7 shadow-sm sm:w-[360px]">
+      <Quote className="h-8 w-8 text-saffron-300" />
+      <div className="mt-3 flex gap-0.5">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <Star key={i} className="h-4 w-4 fill-turmeric-500 text-turmeric-500" />
+        ))}
+      </div>
+      <blockquote className="mt-4 flex-1 text-[15px] leading-relaxed text-maroon-700">
+        &ldquo;{t.text}&rdquo;
+      </blockquote>
+      <figcaption className="mt-5 border-t border-cream-200 pt-4">
+        <p className="font-semibold text-maroon-800">{t.name}</p>
+        <p className="text-sm text-saffron-600">{t.city}</p>
+      </figcaption>
+    </figure>
+  );
+}
+
+export function Testimonials() {
+  // Duplicated track for a seamless, slow infinite loop.
+  const loop = [...testimonials, ...testimonials];
+
+  return (
+    <section className="section overflow-hidden bg-cream-100 rangoli-bg">
       <div className="container">
         <div className="mx-auto mb-14 max-w-2xl text-center">
           <p className="text-sm font-semibold uppercase tracking-[0.2em] text-saffron-600">
@@ -30,30 +73,16 @@ export function Testimonials() {
             What our customers say
           </h2>
         </div>
+      </div>
 
-        <div className="grid gap-6 md:grid-cols-3">
-          {testimonials.map((t) => (
-            <figure
-              key={t.name}
-              className="flex flex-col rounded-2xl border border-cream-300 bg-white p-7 shadow-sm"
-            >
-              <Quote className="h-8 w-8 text-saffron-300" />
-              <div className="mt-3 flex gap-0.5">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <Star
-                    key={i}
-                    className="h-4 w-4 fill-turmeric-500 text-turmeric-500"
-                  />
-                ))}
-              </div>
-              <blockquote className="mt-4 flex-1 text-[15px] leading-relaxed text-maroon-700">
-                “{t.text}”
-              </blockquote>
-              <figcaption className="mt-5 border-t border-cream-200 pt-4">
-                <p className="font-semibold text-maroon-800">{t.name}</p>
-                <p className="text-sm text-saffron-600">{t.city}</p>
-              </figcaption>
-            </figure>
+      {/* Marquee: pauses on hover, respects reduced motion */}
+      <div
+        className="group relative flex overflow-hidden [--gap:1.25rem]"
+        aria-label="Customer testimonials"
+      >
+        <div className="flex min-w-full shrink-0 items-stretch gap-5 pl-5 motion-safe:animate-marquee group-hover:[animation-play-state:paused] motion-reduce:animate-none">
+          {loop.map((t, i) => (
+            <Card key={i} t={t} />
           ))}
         </div>
       </div>

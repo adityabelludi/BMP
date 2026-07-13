@@ -34,8 +34,8 @@ export function Logo({
           BMP
         </span>
         {!compact && (
-          <span className="text-[10px] font-medium uppercase tracking-[0.18em] text-saffron-600">
-            Belludi Masala
+          <span className="text-[9px] font-medium uppercase tracking-[0.14em] text-saffron-600">
+            Belludi Masala Products
           </span>
         )}
       </span>

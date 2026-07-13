@@ -4,6 +4,8 @@ import { LogIn, UserPlus, Lock } from "lucide-react";
 import { CheckoutForm } from "@/components/checkout-form";
 import { Button } from "@/components/ui/button";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/server";
+import { getDeliverySettings } from "@/lib/data";
+import { DELIVERY_CHARGE, DELIVERY_CHARGE_OUTSIDE } from "@/lib/constants";
 
 export const metadata: Metadata = {
   title: "Checkout",
@@ -50,5 +52,17 @@ export default async function CheckoutPage() {
     }
   }
 
-  return <CheckoutForm />;
+  const settings = isSupabaseConfigured()
+    ? await getDeliverySettings()
+    : {
+        delivery_within_india: DELIVERY_CHARGE,
+        delivery_outside_india: DELIVERY_CHARGE_OUTSIDE,
+      };
+
+  return (
+    <CheckoutForm
+      deliveryWithinIndia={settings.delivery_within_india}
+      deliveryOutsideIndia={settings.delivery_outside_india}
+    />
+  );
 }
