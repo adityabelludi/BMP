@@ -4,7 +4,7 @@ import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Plus, Pencil, Trash2, Search, Loader2 } from "lucide-react";
-import type { Product } from "@/types";
+import type { Category, Product } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -97,7 +97,13 @@ function DeleteButton({ product }: { product: Product }) {
   );
 }
 
-export function ProductsManager({ products }: { products: Product[] }) {
+export function ProductsManager({
+  products,
+  categories,
+}: {
+  products: Product[];
+  categories: Category[];
+}) {
   const [query, setQuery] = useState("");
 
   const filtered = useMemo(() => {
@@ -124,6 +130,7 @@ export function ProductsManager({ products }: { products: Product[] }) {
           />
         </div>
         <ProductForm
+          categories={categories}
           trigger={
             <Button>
               <Plus className="h-4 w-4" /> Add Product
@@ -190,6 +197,7 @@ export function ProductsManager({ products }: { products: Product[] }) {
                     <div className="inline-flex items-center gap-1">
                       <ProductForm
                         product={p}
+                        categories={categories}
                         trigger={
                           <Button size="sm" variant="ghost">
                             <Pencil className="h-4 w-4" />

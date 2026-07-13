@@ -26,6 +26,18 @@ function revalidateStore() {
   revalidatePath("/");
 }
 
+/** Ensure a category typed on the product form exists in the managed list. */
+async function ensureCategory(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  name: string
+) {
+  const clean = name.trim();
+  if (!clean) return;
+  await supabase
+    .from("categories")
+    .upsert({ name: clean }, { onConflict: "name", ignoreDuplicates: true });
+}
+
 export async function createProduct(
   input: ProductInput
 ): Promise<ProductActionResult> {
@@ -50,6 +62,7 @@ export async function createProduct(
     return { ok: false, error: error.message };
   }
 
+  await ensureCategory(supabase, parsed.data.category);
   revalidateStore();
   return { ok: true, id: data.id };
 }
@@ -78,6 +91,7 @@ export async function updateProduct(
     return { ok: false, error: error.message };
   }
 
+  await ensureCategory(supabase, parsed.data.category);
   revalidateStore();
   return { ok: true, id };
 }

@@ -3,7 +3,15 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Loader2, Upload, ImageIcon, Sparkles, PackageCheck } from "lucide-react";
+import {
+  Loader2,
+  Upload,
+  ImageIcon,
+  Sparkles,
+  PackageCheck,
+  Plus,
+  X,
+} from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -27,9 +35,11 @@ import {
 import { createClient } from "@/lib/supabase/client";
 import { createProduct, updateProduct } from "@/app/actions/products";
 import { productSchema } from "@/lib/validators";
-import { SIZES, SIZE_WEIGHTS, SPICE_LEVELS } from "@/lib/constants";
+import { SPICE_LEVELS } from "@/lib/constants";
 import { formatINR } from "@/lib/utils";
-import type { Product, SizeCode, SpiceLevel } from "@/types";
+import type { Category, Product, SpiceLevel } from "@/types";
+
+const ADD_NEW = "__add_new__";
 
 function slugify(s: string) {
   return s
@@ -40,29 +50,45 @@ function slugify(s: string) {
     .replace(/-+/g, "-");
 }
 
-function emptyPrices(product?: Product): Record<SizeCode, string> {
-  const map: Record<SizeCode, string> = { "100g": "", "500g": "", "1kg": "" };
-  if (product) {
-    for (const v of product.variants) {
-      map[v.size] = String(v.price);
-    }
-  } else {
-    map["100g"] = "40";
-    map["500g"] = "200";
-    map["1kg"] = "400";
+interface VariantRow {
+  id: string;
+  size: string;
+  price: string;
+}
+
+function initialVariants(product?: Product): VariantRow[] {
+  if (product && product.variants.length) {
+    return product.variants.map((v) => ({
+      id: crypto.randomUUID(),
+      size: v.size,
+      price: String(v.price),
+    }));
   }
-  return map;
+  return [
+    { id: crypto.randomUUID(), size: "100g", price: "40" },
+    { id: crypto.randomUUID(), size: "500g", price: "200" },
+    { id: crypto.randomUUID(), size: "1kg", price: "400" },
+  ];
 }
 
 export function ProductForm({
   product,
+  categories,
   trigger,
 }: {
   product?: Product;
+  categories: Category[];
   trigger: React.ReactNode;
 }) {
   const router = useRouter();
   const isEdit = Boolean(product);
+
+  const catOptions = Array.from(
+    new Set([
+      ...categories.map((c) => c.name),
+      ...(product?.category ? [product.category] : []),
+    ])
+  );
 
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -71,7 +97,12 @@ export function ProductForm({
   const [name, setName] = useState(product?.name ?? "");
   const [slug, setSlug] = useState(product?.slug ?? "");
   const [slugTouched, setSlugTouched] = useState(isEdit);
-  const [category, setCategory] = useState(product?.category ?? "");
+  const [category, setCategory] = useState(
+    product?.category ?? catOptions[0] ?? ""
+  );
+  const [addingNewCategory, setAddingNewCategory] = useState(
+    catOptions.length === 0
+  );
   const [shortDesc, setShortDesc] = useState(product?.short_description ?? "");
   const [description, setDescription] = useState(product?.description ?? "");
   const [spice, setSpice] = useState<SpiceLevel>(
@@ -80,14 +111,34 @@ export function ProductForm({
   const [bestseller, setBestseller] = useState(product?.is_bestseller ?? false);
   const [inStock, setInStock] = useState(product?.in_stock ?? true);
   const [imageUrl, setImageUrl] = useState(product?.image_url ?? "");
-  const [prices, setPrices] = useState<Record<SizeCode, string>>(
-    emptyPrices(product)
+  const [variants, setVariants] = useState<VariantRow[]>(
+    initialVariants(product)
   );
 
   function onNameChange(v: string) {
     setName(v);
     if (!slugTouched) setSlug(slugify(v));
   }
+
+  function updateVariant(id: string, patch: Partial<VariantRow>) {
+    setVariants((rows) =>
+      rows.map((r) => (r.id === id ? { ...r, ...patch } : r))
+    );
+  }
+  function addVariant() {
+    setVariants((rows) => [
+      ...rows,
+      { id: crypto.randomUUID(), size: "", price: "" },
+    ]);
+  }
+  function removeVariant(id: string) {
+    setVariants((rows) => (rows.length <= 1 ? rows : rows.filter((r) => r.id !== id)));
+  }
+
+  const minPrice = Math.min(
+    ...variants.map((v) => Number(v.price) || Infinity),
+    Infinity
+  );
 
   async function handleUpload(file: File) {
     setUploading(true);
@@ -106,32 +157,37 @@ export function ProductForm({
       setImageUrl(data.publicUrl);
       toast.success("Image uploaded");
     } catch (e) {
-      toast.error(
-        e instanceof Error ? e.message : "Image upload failed"
-      );
+      toast.error(e instanceof Error ? e.message : "Image upload failed");
     } finally {
       setUploading(false);
     }
   }
 
   async function handleSave() {
-    const variants = SIZES.map((size) => ({
-      size,
-      price: Number(prices[size] || 0),
-      weight_grams: SIZE_WEIGHTS[size],
-    }));
+    const cleanVariants = variants
+      .filter((v) => v.size.trim() && Number(v.price) > 0)
+      .map((v) => ({
+        size: v.size.trim(),
+        price: Number(v.price),
+        weight_grams: 0,
+      }));
+
+    if (cleanVariants.length === 0) {
+      toast.error("Add at least one size with a price");
+      return;
+    }
 
     const payload = {
       name,
       slug,
-      category,
+      category: category.trim(),
       short_description: shortDesc,
       description,
       spice_default: spice,
       is_bestseller: bestseller,
       in_stock: inStock,
       image_url: imageUrl,
-      variants,
+      variants: cleanVariants,
     };
 
     const parsed = productSchema.safeParse(payload);
@@ -160,9 +216,7 @@ export function ProductForm({
       <SheetTrigger asChild>{trigger}</SheetTrigger>
       <SheetContent className="w-full p-0 sm:max-w-lg">
         <SheetHeader>
-          <SheetTitle>
-            {isEdit ? "Edit Product" : "Add New Product"}
-          </SheetTitle>
+          <SheetTitle>{isEdit ? "Edit Product" : "Add New Product"}</SheetTitle>
         </SheetHeader>
 
         <div className="flex-1 space-y-5 overflow-y-auto px-6 py-5">
@@ -185,27 +239,24 @@ export function ProductForm({
                   </div>
                 )}
               </div>
-              <div className="space-y-2">
-                <label className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-saffron-200 px-4 py-2 text-sm font-medium text-maroon-700 transition-colors hover:bg-saffron-50">
-                  {uploading ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Upload className="h-4 w-4" />
-                  )}
-                  {uploading ? "Uploading…" : "Upload image"}
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    disabled={uploading}
-                    onChange={(e) => {
-                      const f = e.target.files?.[0];
-                      if (f) handleUpload(f);
-                    }}
-                  />
-                </label>
-                <p className="text-xs text-maroon-400">PNG/JPG, square works best.</p>
-              </div>
+              <label className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-saffron-200 px-4 py-2 text-sm font-medium text-maroon-700 transition-colors hover:bg-saffron-50">
+                {uploading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Upload className="h-4 w-4" />
+                )}
+                {uploading ? "Uploading…" : "Upload image"}
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  disabled={uploading}
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    if (f) handleUpload(f);
+                  }}
+                />
+              </label>
             </div>
           </div>
 
@@ -233,15 +284,57 @@ export function ProductForm({
                 className="mt-1.5"
               />
             </div>
+
+            {/* Category */}
             <div>
-              <Label htmlFor="p-cat">Category *</Label>
-              <Input
-                id="p-cat"
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                placeholder="e.g. Curry Powders"
-                className="mt-1.5"
-              />
+              <Label>Category *</Label>
+              {addingNewCategory ? (
+                <div className="mt-1.5 flex gap-2">
+                  <Input
+                    value={category}
+                    onChange={(e) => setCategory(e.target.value)}
+                    placeholder="New category"
+                    autoFocus
+                  />
+                  {catOptions.length > 0 && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => {
+                        setAddingNewCategory(false);
+                        setCategory(catOptions[0]);
+                      }}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+              ) : (
+                <Select
+                  value={category}
+                  onValueChange={(val) => {
+                    if (val === ADD_NEW) {
+                      setAddingNewCategory(true);
+                      setCategory("");
+                    } else {
+                      setCategory(val);
+                    }
+                  }}
+                >
+                  <SelectTrigger className="mt-1.5">
+                    <SelectValue placeholder="Select a category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {catOptions.map((c) => (
+                      <SelectItem key={c} value={c}>
+                        {c}
+                      </SelectItem>
+                    ))}
+                    <SelectItem value={ADD_NEW}>➕ Add new category…</SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
             </div>
           </div>
 
@@ -269,10 +362,7 @@ export function ProductForm({
 
           <div>
             <Label>Spice Level</Label>
-            <Select
-              value={spice}
-              onValueChange={(v) => setSpice(v as SpiceLevel)}
-            >
+            <Select value={spice} onValueChange={(v) => setSpice(v as SpiceLevel)}>
               <SelectTrigger className="mt-1.5">
                 <SelectValue />
               </SelectTrigger>
@@ -286,27 +376,57 @@ export function ProductForm({
             </Select>
           </div>
 
-          {/* Prices */}
+          {/* Custom sizes & prices */}
           <div>
-            <Label>Pricing (₹) *</Label>
-            <div className="mt-1.5 grid grid-cols-3 gap-3">
-              {SIZES.map((size) => (
-                <div key={size}>
-                  <span className="text-xs font-medium text-maroon-500">
-                    {size}
-                  </span>
+            <Label>Sizes &amp; Prices *</Label>
+            <p className="mb-2 mt-0.5 text-xs text-maroon-400">
+              Add any sizes you sell — custom labels are fine.
+            </p>
+            <div className="space-y-2">
+              {variants.map((v) => (
+                <div key={v.id} className="flex items-center gap-2">
                   <Input
-                    inputMode="numeric"
-                    value={prices[size]}
-                    onChange={(e) =>
-                      setPrices((p) => ({ ...p, [size]: e.target.value }))
-                    }
-                    placeholder="0"
-                    className="mt-1"
+                    value={v.size}
+                    onChange={(e) => updateVariant(v.id, { size: e.target.value })}
+                    placeholder="Size (e.g. 250g)"
+                    className="flex-1"
                   />
+                  <div className="flex items-center gap-1 rounded-xl border border-cream-300 bg-white px-3">
+                    <span className="text-sm text-maroon-500">₹</span>
+                    <input
+                      inputMode="numeric"
+                      value={v.price}
+                      onChange={(e) =>
+                        updateVariant(v.id, {
+                          price: e.target.value.replace(/[^0-9]/g, ""),
+                        })
+                      }
+                      placeholder="0"
+                      className="h-11 w-20 bg-transparent text-sm text-maroon-900 outline-none"
+                    />
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="text-rose-600 hover:bg-rose-50"
+                    onClick={() => removeVariant(v.id)}
+                    disabled={variants.length <= 1}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
                 </div>
               ))}
             </div>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="mt-2"
+              onClick={addVariant}
+            >
+              <Plus className="h-4 w-4" /> Add size
+            </Button>
           </div>
 
           {/* Toggles */}
@@ -338,7 +458,9 @@ export function ProductForm({
                 <Loader2 className="h-5 w-5 animate-spin" /> Saving…
               </>
             ) : isEdit ? (
-              `Save Changes · from ${formatINR(Number(prices["100g"] || 0))}`
+              Number.isFinite(minPrice)
+                ? `Save Changes · from ${formatINR(minPrice)}`
+                : "Save Changes"
             ) : (
               "Add Product"
             )}

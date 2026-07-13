@@ -2,9 +2,16 @@
 // Shared domain types for BMP - Belludi Masala Products
 // ------------------------------------------------------------------
 
-export type SizeCode = "100g" | "500g" | "1kg";
+// A size is now a free-form label per product (e.g. "100g", "250g", "Family pack 2kg").
+export type SizeCode = string;
 
 export type SpiceLevel = "Mild" | "Medium" | "High";
+
+export interface Category {
+  id: string;
+  name: string;
+  created_at?: string;
+}
 
 export type OrderStatus =
   | "Pending"
@@ -14,9 +21,9 @@ export type OrderStatus =
   | "Cancelled";
 
 export interface ProductVariant {
-  size: SizeCode;
+  size: SizeCode; // label, e.g. "250g" or "Family pack 2kg"
   price: number; // in INR
-  weight_grams: number;
+  weight_grams?: number; // optional, for reference only
 }
 
 export interface Product {

@@ -7,15 +7,13 @@ import type { Product, SizeCode, SpiceLevel } from "@/types";
 import { Button } from "@/components/ui/button";
 import { QuantityStepper } from "@/components/quantity-stepper";
 import { useCart } from "@/store/cart";
-import { SIZES, SPICE_LEVELS } from "@/lib/constants";
+import { SPICE_LEVELS } from "@/lib/constants";
 import { cn, formatINR } from "@/lib/utils";
 
 export function AddToCart({ product }: { product: Product }) {
   const addItem = useCart((s) => s.addItem);
 
-  const [size, setSize] = useState<SizeCode>(
-    (product.variants[0]?.size as SizeCode) ?? "100g"
-  );
+  const [size, setSize] = useState<SizeCode>(product.variants[0]?.size ?? "");
   const [spice, setSpice] = useState<SpiceLevel>(product.spice_default);
   const [qty, setQty] = useState(1);
 
@@ -24,9 +22,7 @@ export function AddToCart({ product }: { product: Product }) {
     return v?.price ?? 0;
   }, [product.variants, size]);
 
-  const availableSizes = SIZES.filter((s) =>
-    product.variants.some((v) => v.size === s)
-  );
+  const availableSizes = product.variants.map((v) => v.size);
 
   function handleAdd() {
     addItem(product, size, price, spice, qty);

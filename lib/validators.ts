@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { SPICE_LEVELS, SIZES } from "@/lib/constants";
+import { SPICE_LEVELS } from "@/lib/constants";
 
 export const checkoutSchema = z.object({
   customer_name: z
@@ -24,7 +24,7 @@ export type CheckoutInput = z.infer<typeof checkoutSchema>;
 export const orderItemSchema = z.object({
   product_id: z.string(),
   name: z.string(),
-  size: z.enum(SIZES as [string, ...string[]]),
+  size: z.string().min(1),
   spice_level: z.enum(SPICE_LEVELS as [string, ...string[]]),
   price: z.number().nonnegative(),
   quantity: z.number().int().positive(),
@@ -39,9 +39,9 @@ export type CreateOrderInput = z.infer<typeof createOrderSchema>;
 
 // ---------- Product management ----------
 export const productVariantSchema = z.object({
-  size: z.enum(SIZES as [string, ...string[]]),
-  price: z.coerce.number().int().nonnegative("Price must be 0 or more"),
-  weight_grams: z.coerce.number().int().positive(),
+  size: z.string().min(1, "Size label is required").max(40),
+  price: z.coerce.number().int().positive("Price must be greater than 0"),
+  weight_grams: z.coerce.number().int().nonnegative().optional(),
 });
 
 export const productSchema = z.object({

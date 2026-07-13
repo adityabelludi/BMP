@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/server";
 import { signOut } from "@/app/actions/auth";
 import { AdminTabs } from "@/components/admin/admin-tabs";
-import { getProducts } from "@/lib/data";
+import { getProducts, getCategories } from "@/lib/data";
 import { Logo } from "@/components/logo";
 import { Button } from "@/components/ui/button";
 import { LogOut } from "lucide-react";
@@ -42,7 +42,10 @@ export default async function AdminPage() {
     .order("created_at", { ascending: false });
 
   const orders = (error ? [] : (data as Order[])) ?? [];
-  const products = await getProducts();
+  const [products, categories] = await Promise.all([
+    getProducts(),
+    getCategories(),
+  ]);
 
   return (
     <div className="min-h-screen">
@@ -68,7 +71,7 @@ export default async function AdminPage() {
       </header>
 
       <main className="container py-8">
-        <AdminTabs orders={orders} products={products} />
+        <AdminTabs orders={orders} products={products} categories={categories} />
       </main>
     </div>
   );
