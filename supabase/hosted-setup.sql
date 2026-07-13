@@ -212,7 +212,7 @@ $$;
 grant execute on function public.is_admin() to anon, authenticated;
 
 -- Seed the first admin (change/add via the admins table)
-insert into public.admins (email) values ('triye3@gmail.com')
+insert into public.admins (email) values ('adityabelludi@gmail.com')
 on conflict (email) do nothing;
 
 -- ============================================================
