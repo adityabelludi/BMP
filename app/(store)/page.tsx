@@ -122,8 +122,8 @@ export default async function HomePage() {
         <div className="container grid grid-cols-1 gap-12 md:grid-cols-2 md:items-center">
           <div className="relative order-2 aspect-square overflow-hidden rounded-3xl md:order-1">
             <SmartImage
-              src="https://images.unsplash.com/photo-1556911073-a517e752729c?auto=format&fit=crop&w=900&q=80"
-              alt="A woman happily preparing a fresh home-cooked meal in a bright, sunlit kitchen"
+              src="https://images.unsplash.com/photo-1643474003664-42ad6632c039?auto=format&fit=crop&w=900&q=80"
+              alt="An Indian woman making fresh rotis in warm morning sunlight"
               fill
               sizes="(max-width: 768px) 100vw, 40vw"
               className="object-cover"
