@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { useActionState } from "react";
 import { useSearchParams } from "next/navigation";
-import { Loader2, LogIn, UserPlus } from "lucide-react";
+import { Loader2, LogIn, UserPlus, MailCheck } from "lucide-react";
 import { Logo } from "@/components/logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,11 +17,43 @@ function Inner({ mode }: { mode: "login" | "signup" }) {
 
   const action = mode === "login" ? customerSignIn : customerSignUp;
   const [state, formAction, pending] = useActionState<
-    { error?: string; message?: string },
+    { error?: string; confirmEmail?: string },
     FormData
   >(action, {});
 
   const isLogin = mode === "login";
+
+  // After signup with email confirmation on: show a "check your inbox" screen.
+  if (state?.confirmEmail) {
+    return (
+      <div className="flex min-h-[80vh] items-center justify-center px-6 py-16">
+        <div className="w-full max-w-md rounded-3xl border border-cream-300 bg-white p-8 text-center shadow-xl">
+          <div className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-emerald-50">
+            <MailCheck className="h-8 w-8 text-emerald-500" />
+          </div>
+          <h1 className="mt-6 heading-serif text-2xl font-bold">
+            Confirm your email
+          </h1>
+          <p className="mt-3 text-maroon-600">
+            We&apos;ve sent a confirmation link to{" "}
+            <span className="font-semibold text-maroon-800">
+              {state.confirmEmail}
+            </span>
+            . Please open it and click the link to activate your account, then
+            log in.
+          </p>
+          <p className="mt-2 text-sm text-maroon-400">
+            Can&apos;t find it? Check your spam or promotions folder.
+          </p>
+          <Button asChild size="lg" className="mt-8 w-full">
+            <Link href={`/login?redirect=${redirect}`}>
+              <LogIn className="h-5 w-5" /> Go to Login
+            </Link>
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-[80vh] items-center justify-center px-6 py-16">
@@ -84,11 +116,6 @@ function Inner({ mode }: { mode: "login" | "signup" }) {
           {state?.error && (
             <p className="rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700">
               {state.error}
-            </p>
-          )}
-          {state?.message && (
-            <p className="rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
-              {state.message}
             </p>
           )}
 

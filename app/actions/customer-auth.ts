@@ -31,7 +31,7 @@ export async function customerSignIn(
 export async function customerSignUp(
   _prev: unknown,
   formData: FormData
-): Promise<{ error?: string; message?: string }> {
+): Promise<{ error?: string; confirmEmail?: string }> {
   const name = String(formData.get("name") ?? "").trim();
   const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
@@ -52,10 +52,7 @@ export async function customerSignUp(
 
   // If email confirmation is required, there is no session yet.
   if (!data.session) {
-    return {
-      message:
-        "Account created! Please check your email to confirm, then log in.",
-    };
+    return { confirmEmail: email };
   }
 
   redirect(redirectTo);
