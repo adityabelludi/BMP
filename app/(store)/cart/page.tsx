@@ -68,7 +68,7 @@ export default function CartPage() {
         </button>
       </div>
 
-      <div className="grid gap-8 lg:grid-cols-[1.7fr_1fr]">
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1.7fr_1fr]">
         {/* Items */}
         <div className="space-y-4">
           {items.map((item) => (

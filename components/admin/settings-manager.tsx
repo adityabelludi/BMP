@@ -39,7 +39,7 @@ export function SettingsManager({ settings }: { settings: DeliverySettings }) {
           These are applied at checkout based on the customer&apos;s country.
         </p>
 
-        <div className="mt-6 grid gap-5 sm:grid-cols-2">
+        <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2">
           <div>
             <Label htmlFor="within">Within India (₹)</Label>
             <Input

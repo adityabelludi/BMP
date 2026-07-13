@@ -48,7 +48,7 @@ export default async function HomePage() {
       {/* ---------------- HERO ---------------- */}
       <section className="relative overflow-hidden bg-hero-warm">
         <div className="absolute inset-0 rangoli-bg opacity-70" aria-hidden />
-        <div className="container relative grid gap-12 py-16 md:grid-cols-2 md:items-center md:py-24">
+        <div className="container relative grid grid-cols-1 gap-12 py-16 md:grid-cols-2 md:items-center md:py-24">
           <div className="animate-fade-up">
             <div className="mb-5 flex flex-wrap gap-2">
               <Badge variant="gold">
@@ -119,11 +119,11 @@ export default async function HomePage() {
 
       {/* ---------------- BRAND STORY ---------------- */}
       <section id="story" className="section">
-        <div className="container grid gap-12 md:grid-cols-2 md:items-center">
+        <div className="container grid grid-cols-1 gap-12 md:grid-cols-2 md:items-center">
           <div className="relative order-2 aspect-square overflow-hidden rounded-3xl md:order-1">
             <SmartImage
-              src="https://images.unsplash.com/photo-1633383718081-22ac93e3db65?auto=format&fit=crop&w=900&q=80"
-              alt="Assorted Indian masalas and spices"
+              src="https://images.unsplash.com/photo-1596797038530-2c107229654b?auto=format&fit=crop&w=900&q=80"
+              alt="A fragrant home-cooked Indian curry simmering, topped with fresh coriander"
               fill
               sizes="(max-width: 768px) 100vw, 40vw"
               className="object-cover"
@@ -200,7 +200,7 @@ export default async function HomePage() {
             </h2>
           </div>
 
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {WHY.map((w) => (
               <div
                 key={w.title}

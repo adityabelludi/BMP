@@ -5,7 +5,7 @@ import { MapPin, Phone, StickyNote, Mail } from "lucide-react";
 
 export function OrderRowDetails({ order }: { order: Order }) {
   return (
-    <div className="grid gap-6 p-6 md:grid-cols-[1.4fr_1fr]">
+    <div className="grid grid-cols-1 gap-6 p-6 md:grid-cols-[1.4fr_1fr]">
       {/* Items */}
       <div>
         <h4 className="mb-3 text-xs font-semibold uppercase tracking-wide text-maroon-600">

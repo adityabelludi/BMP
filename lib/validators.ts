@@ -18,12 +18,14 @@ const checkoutBase = z.object({
   notes: z.string().max(500, "Notes are too long").optional().or(z.literal("")),
 });
 
-// India-specific format checks (only when country is India).
+// Country-specific format checks.
 function refineAddress(
   data: { country?: string; phone: string; pincode: string },
   ctx: z.RefinementCtx
 ) {
-  if ((data.country ?? "India").trim().toLowerCase() === "india") {
+  const country = (data.country ?? "India").trim().toLowerCase();
+
+  if (country === "india") {
     if (!/^[6-9]\d{9}$/.test(data.phone)) {
       ctx.addIssue({
         path: ["phone"],
@@ -36,6 +38,22 @@ function refineAddress(
         path: ["pincode"],
         code: z.ZodIssueCode.custom,
         message: "Enter a valid 6-digit pincode",
+      });
+    }
+  } else {
+    // International: require a country code on the phone.
+    if (!/^\+\d[\d\s-]{6,18}$/.test(data.phone.trim())) {
+      ctx.addIssue({
+        path: ["phone"],
+        code: z.ZodIssueCode.custom,
+        message: "Include your country code, e.g. +1 555 123 4567",
+      });
+    }
+    if (data.pincode.trim().length < 3) {
+      ctx.addIssue({
+        path: ["pincode"],
+        code: z.ZodIssueCode.custom,
+        message: "Enter a valid ZIP / postal code",
       });
     }
   }

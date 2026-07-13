@@ -45,10 +45,8 @@ export function CheckoutForm({
   });
 
   const country = watch("country") ?? "India";
-  const deliveryCharge =
-    country.toLowerCase() === "india"
-      ? deliveryWithinIndia
-      : deliveryOutsideIndia;
+  const isIndia = country.toLowerCase() === "india";
+  const deliveryCharge = isIndia ? deliveryWithinIndia : deliveryOutsideIndia;
 
   const subtotal = items.reduce((s, i) => s + i.price * i.quantity, 0);
   const total = subtotal + (items.length ? deliveryCharge : 0);
@@ -110,7 +108,7 @@ export function CheckoutForm({
 
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className="grid gap-8 lg:grid-cols-[1.6fr_1fr]"
+        className="grid grid-cols-1 gap-8 lg:grid-cols-[1.6fr_1fr]"
       >
         {/* Delivery details */}
         <div className="space-y-6 rounded-2xl border border-cream-300 bg-white p-6 shadow-sm md:p-8">
@@ -118,7 +116,7 @@ export function CheckoutForm({
             Delivery Details
           </h2>
 
-          <div className="grid gap-5 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
             <div className="sm:col-span-2">
               <Label htmlFor="customer_name">Full Name *</Label>
               <Input
@@ -134,11 +132,11 @@ export function CheckoutForm({
               <Label htmlFor="country">Country / Region *</Label>
               <select
                 id="country"
-                className="mt-1.5 flex h-11 w-full rounded-xl border border-cream-300 bg-white px-4 text-sm text-maroon-900 shadow-sm focus-visible:border-saffron-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-saffron-200"
+                className="mt-1.5 flex h-12 w-full rounded-xl border border-cream-300 bg-white px-4 text-base text-maroon-900 shadow-sm focus-visible:border-saffron-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-saffron-200"
                 {...register("country")}
               >
                 <option value="India">India</option>
-                <option value="Outside India">Outside India</option>
+                <option value="USA">USA</option>
               </select>
               {fieldError("country")}
             </div>
@@ -147,20 +145,30 @@ export function CheckoutForm({
               <Label htmlFor="phone">Phone Number *</Label>
               <Input
                 id="phone"
-                inputMode="numeric"
-                placeholder="10-digit mobile"
+                type="tel"
+                inputMode="tel"
+                placeholder={
+                  isIndia ? "10-digit mobile" : "With country code, e.g. +1 555 123 4567"
+                }
                 className="mt-1.5"
                 {...register("phone")}
               />
+              {!isIndia && (
+                <p className="mt-1 text-xs text-maroon-400">
+                  Please include your country code (e.g. +1 for USA).
+                </p>
+              )}
               {fieldError("phone")}
             </div>
 
             <div>
-              <Label htmlFor="pincode">Pincode *</Label>
+              <Label htmlFor="pincode">
+                {isIndia ? "Pincode *" : "ZIP / Postal code *"}
+              </Label>
               <Input
                 id="pincode"
-                inputMode="numeric"
-                placeholder="6-digit pincode"
+                inputMode={isIndia ? "numeric" : "text"}
+                placeholder={isIndia ? "6-digit pincode" : "e.g. 10001"}
                 className="mt-1.5"
                 {...register("pincode")}
               />

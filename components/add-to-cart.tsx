@@ -46,7 +46,7 @@ export function AddToCart({ product }: { product: Product }) {
                 key={s}
                 onClick={() => setSize(s)}
                 className={cn(
-                  "flex min-w-[92px] flex-col items-center rounded-xl border px-4 py-2.5 transition-all",
+                  "flex min-w-[96px] flex-col items-center rounded-xl border px-4 py-3 transition-all active:scale-[0.98]",
                   active
                     ? "border-saffron-500 bg-saffron-50 ring-1 ring-saffron-300"
                     : "border-cream-300 bg-white hover:border-saffron-300"
@@ -77,7 +77,7 @@ export function AddToCart({ product }: { product: Product }) {
                 key={s}
                 onClick={() => setSpice(s)}
                 className={cn(
-                  "rounded-full border px-5 py-2 text-sm font-medium transition-all",
+                  "rounded-full border px-5 py-2.5 text-sm font-medium transition-all active:scale-[0.98]",
                   active
                     ? "border-maroon-500 bg-maroon-500 text-white"
                     : "border-cream-300 bg-white text-maroon-700 hover:border-maroon-300"
@@ -93,15 +93,26 @@ export function AddToCart({ product }: { product: Product }) {
       {/* Quantity + Add */}
       {product.in_stock ? (
         <div className="flex flex-col gap-4 pt-2 sm:flex-row sm:items-center">
-          <QuantityStepper value={qty} onChange={setQty} />
-          <Button size="lg" className="flex-1" onClick={handleAdd}>
+          <div className="flex justify-center sm:block">
+            <QuantityStepper value={qty} onChange={setQty} />
+          </div>
+          <Button
+            size="lg"
+            className="h-14 w-full text-base font-semibold shadow-md sm:h-12 sm:flex-1"
+            onClick={handleAdd}
+          >
             <ShoppingBag className="h-5 w-5" />
             Add to Cart · {formatINR(price * qty)}
           </Button>
         </div>
       ) : (
         <div className="pt-2">
-          <Button size="lg" className="w-full" variant="secondary" disabled>
+          <Button
+            size="lg"
+            className="h-14 w-full text-base sm:h-12"
+            variant="secondary"
+            disabled
+          >
             Sold out
           </Button>
           <p className="mt-2 text-center text-sm text-maroon-500">

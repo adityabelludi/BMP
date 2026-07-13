@@ -39,25 +39,27 @@ export function ProductCard({ product }: { product: Product }) {
         )}
       </div>
 
-      <div className="flex flex-1 flex-col p-4">
+      <div className="flex flex-1 flex-col p-4 sm:p-5">
         <p className="text-[11px] font-medium uppercase tracking-wide text-saffron-600">
           {product.category}
         </p>
-        <h3 className="mt-1 font-heading text-lg font-semibold text-maroon-800">
+        <h3 className="mt-1 font-heading text-base font-semibold leading-snug text-maroon-800 sm:text-lg">
           {product.name}
         </h3>
         <p className="mt-1 line-clamp-2 flex-1 text-sm text-maroon-500">
           {product.short_description}
         </p>
 
-        <div className="mt-4 flex items-center justify-between">
-          <div>
-            <span className="text-xs text-maroon-500">{cheapest?.size}</span>
+        <div className="mt-4 flex items-center justify-between gap-2">
+          <div className="min-w-0">
+            <span className="block truncate text-xs text-maroon-500">
+              {cheapest?.size}
+            </span>
             <p className="font-heading text-lg font-bold text-maroon-900">
               {formatINR(cheapest?.price ?? 0)}
             </p>
           </div>
-          <span className="inline-flex items-center gap-1 rounded-full bg-saffron-50 px-3 py-1.5 text-sm font-medium text-saffron-700 transition-colors group-hover:bg-saffron-500 group-hover:text-white">
+          <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-saffron-50 px-3 py-2 text-sm font-medium text-saffron-700 transition-colors group-hover:bg-saffron-500 group-hover:text-white">
             View
             <ArrowRight className="h-4 w-4" />
           </span>

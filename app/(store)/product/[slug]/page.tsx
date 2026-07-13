@@ -69,7 +69,7 @@ export default async function ProductPage({ params }: Props) {
           <span className="font-medium text-maroon-800">{product.name}</span>
         </nav>
 
-        <div className="mt-8 grid gap-10 lg:grid-cols-2">
+        <div className="mt-8 grid grid-cols-1 gap-10 lg:grid-cols-2">
           {/* Image */}
           <div className="relative aspect-square overflow-hidden rounded-3xl border border-cream-300 bg-cream-200 shadow-sm">
             <SmartImage
