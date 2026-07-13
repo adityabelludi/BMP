@@ -25,6 +25,12 @@ yarn-error.log*
 .env*.local
 !.env.local.example
 
+# secret notes / key dumps — never commit
+KEY.txt
+*.key
+keys.txt
+secrets.txt
+
 # vercel
 .vercel
 

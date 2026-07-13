@@ -10,6 +10,7 @@
     "lint": "next lint",
     "seed": "tsx scripts/seed.ts",
     "migrate:images": "tsx scripts/migrate-images.ts",
+    "build:sql": "tsx scripts/build-hosted-sql.ts",
     "db:reset": "supabase db reset"
   },
   "dependencies": {
