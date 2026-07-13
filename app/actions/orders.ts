@@ -4,7 +4,9 @@ import { createOrderSchema, type CreateOrderInput } from "@/lib/validators";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/server";
 import { DELIVERY_CHARGE } from "@/lib/constants";
-import type { OrderItem } from "@/types";
+import { sendEmail } from "@/lib/email";
+import { orderConfirmationEmail } from "@/lib/email-templates";
+import type { Order, OrderItem } from "@/types";
 
 const MAX_QTY_PER_LINE = 99;
 
@@ -101,6 +103,7 @@ export async function createOrder(
       .from("orders")
       .insert({
         user_id: user?.id ?? null,
+        email: user.email ?? null,
         customer_name: data.customer_name,
         phone: data.phone,
         address_line: data.address_line,
@@ -134,6 +137,30 @@ export async function createOrder(
         line_total: i.line_total,
       }))
     );
+
+    // Best-effort order confirmation email (never blocks the order).
+    if (user.email) {
+      const fullOrder: Order = {
+        id: order.id,
+        user_id: user.id,
+        email: user.email,
+        customer_name: data.customer_name,
+        phone: data.phone,
+        address_line: data.address_line,
+        city: data.city,
+        state: data.state,
+        pincode: data.pincode,
+        notes: data.notes || null,
+        items,
+        subtotal,
+        delivery_charge,
+        total_amount,
+        status: "Pending",
+        created_at: new Date().toISOString(),
+      };
+      const { subject, html } = orderConfirmationEmail(fullOrder);
+      await sendEmail({ to: user.email, subject, html });
+    }
 
     return { ok: true, orderId: order.id };
   } catch (e) {

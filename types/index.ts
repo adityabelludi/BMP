@@ -62,6 +62,7 @@ export interface Order {
   id: string;
   user_id: string | null;
   customer_name: string;
+  email: string | null;
   phone: string;
   address_line: string;
   city: string;

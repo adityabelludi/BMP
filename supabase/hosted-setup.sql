@@ -283,6 +283,14 @@ create policy "product_images_auth_delete"
   using (bucket_id = 'product-images' and public.is_admin());
 
 
+-- ===================== 20260105000000_order_email.sql =====================
+-- ============================================================
+-- BMP :: Store customer email on orders (for status emails)
+-- ============================================================
+alter table public.orders
+  add column if not exists email text;
+
+
 -- ===================== seed: products =====================
 insert into public.products (slug,name,short_description,description,image_url,category,spice_default,is_bestseller,in_stock,variants) values
 ('pulihora-powder','Pulihora Powder','Tangy tamarind rice mix, temple-style.','Our Pulihora (tamarind rice) powder is a fragrant blend of roasted lentils, sesame, curry leaves and tangy tamarind — the same recipe served as prasadam in Karnataka temples. Just mix with hot rice and a spoon of ghee for an instant, soul-warming meal.','/products/pulihora_powder.png','Rice Mixes','Medium',true,true,'[{"size":"100g","price":40,"weight_grams":100},{"size":"500g","price":200,"weight_grams":500},{"size":"1kg","price":400,"weight_grams":1000}]'::jsonb),

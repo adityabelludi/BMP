@@ -15,6 +15,8 @@ function Inner({ mode }: { mode: "login" | "signup" }) {
   const searchParams = useSearchParams();
   const redirect = searchParams.get("redirect") ?? "/account";
 
+  const urlError = searchParams.get("error");
+
   const action = mode === "login" ? customerSignIn : customerSignUp;
   const [state, formAction, pending] = useActionState<
     { error?: string; confirmEmail?: string },
@@ -22,6 +24,7 @@ function Inner({ mode }: { mode: "login" | "signup" }) {
   >(action, {});
 
   const isLogin = mode === "login";
+  const errorText = state?.error ?? (isLogin ? urlError : null);
 
   // After signup with email confirmation on: show a "check your inbox" screen.
   if (state?.confirmEmail) {
@@ -101,7 +104,17 @@ function Inner({ mode }: { mode: "login" | "signup" }) {
           </div>
 
           <div>
-            <Label htmlFor="password">Password</Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="password">Password</Label>
+              {isLogin && (
+                <Link
+                  href="/forgot-password"
+                  className="text-xs font-medium text-saffron-600 hover:underline"
+                >
+                  Forgot password?
+                </Link>
+              )}
+            </div>
             <Input
               id="password"
               name="password"
@@ -113,9 +126,9 @@ function Inner({ mode }: { mode: "login" | "signup" }) {
             />
           </div>
 
-          {state?.error && (
+          {errorText && (
             <p className="rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700">
-              {state.error}
+              {errorText}
             </p>
           )}
 

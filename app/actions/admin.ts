@@ -3,7 +3,9 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { ORDER_STATUSES } from "@/lib/constants";
-import type { OrderStatus } from "@/types";
+import { sendEmail } from "@/lib/email";
+import { orderStatusEmail } from "@/lib/email-templates";
+import type { Order, OrderStatus } from "@/types";
 
 export async function updateOrderStatus(
   orderId: string,
@@ -27,11 +29,19 @@ export async function updateOrderStatus(
     .from("orders")
     .update({ status })
     .eq("id", orderId)
-    .select("id");
+    .select("*")
+    .maybeSingle();
 
   if (error) return { ok: false, error: error.message };
-  if (!updated || updated.length === 0) {
+  if (!updated) {
     return { ok: false, error: "Order not found or not permitted" };
+  }
+
+  // Best-effort status email to the customer (never blocks the update).
+  const order = updated as Order;
+  if (order.email) {
+    const { subject, html } = orderStatusEmail(order);
+    await sendEmail({ to: order.email, subject, html });
   }
 
   revalidatePath("/admin");
