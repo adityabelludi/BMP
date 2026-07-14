@@ -15,14 +15,13 @@ export function Logo({
       className={cn("group inline-flex items-center gap-3", className)}
       aria-label="BMP — Belludi Masala Products, home"
     >
-      <span className="relative block h-20 w-20 shrink-0 overflow-hidden rounded-full shadow-sm ring-2 ring-turmeric-500/30 transition-transform group-hover:scale-105">
+      <span className="relative block h-20 w-20 shrink-0 overflow-hidden rounded-full transition-transform group-hover:scale-105">
         <Image
           src="/logo.png"
           alt="BMP — Belludi Masala Products logo"
           fill
-          sizes="256px"
-          quality={95}
           className="object-cover"
+          unoptimized
           priority
         />
       </span>
