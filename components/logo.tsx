@@ -20,7 +20,8 @@ export function Logo({
           src="/logo.png"
           alt="BMP — Belludi Masala Products logo"
           fill
-          sizes="80px"
+          sizes="256px"
+          quality={95}
           className="object-cover"
           priority
         />
