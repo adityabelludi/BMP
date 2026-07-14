@@ -18,8 +18,8 @@ export function Logo({
       <Image
         src="/logo.png"
         alt="BMP — Belludi Masala Products logo"
-        width={1408}
-        height={768}
+        width={713}
+        height={717}
         className="h-20 w-auto shrink-0 transition-transform group-hover:scale-105"
         unoptimized
         priority
