@@ -51,7 +51,7 @@ export default async function AdminPage() {
   return (
     <div className="min-h-screen">
       <header className="sticky top-0 z-30 border-b border-cream-300 bg-white/90 backdrop-blur">
-        <div className="container flex h-16 items-center justify-between">
+        <div className="container flex h-24 items-center justify-between">
           <div className="flex items-center gap-3">
             <Logo compact />
             <span className="hidden rounded-full bg-maroon-50 px-3 py-1 text-xs font-semibold text-maroon-700 sm:inline">

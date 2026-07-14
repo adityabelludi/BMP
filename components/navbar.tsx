@@ -21,7 +21,7 @@ export function Navbar() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-cream-300/70 bg-cream-100/80 backdrop-blur-md">
-      <div className="container flex h-16 items-center justify-between">
+      <div className="container flex h-24 items-center justify-between">
         <Logo />
 
         <nav className="hidden items-center gap-1 md:flex">
